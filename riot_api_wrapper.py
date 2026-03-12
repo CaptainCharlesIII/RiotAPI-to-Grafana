@@ -20,14 +20,16 @@ riot_watcher = RiotWatcher(api_key)
 def get_summoner(name, tag, region='na1'):
     """Get summoner info by Riot ID (name#tag)"""
     try:
-        if region in ['na1', 'br1', 'la1', 'la2']:
+        if region in ['na1', 'br1', 'la1', 'la2', 'oc1']:
             routing = 'americas'
-        elif region in ['euw1', 'eune1', 'tr1', 'ru']:
+        elif region in ['euw1', 'eun1', 'tr1', 'ru']:
             routing = 'europe'
         elif region in ['kr', 'jp1']:
             routing = 'asia'
-        else:
+        elif region in ['ph2', 'sg2', 'th2', 'tw2', 'vn2']:
             routing = 'sea'
+        else:
+            routing = 'americas'  # Default to americas
         
         # Get account info (returns puuid)
         account = riot_watcher.account.by_riot_id(routing, name, tag)
@@ -80,14 +82,16 @@ def get_ranked_stats(puuid, region='na1'):
         import requests
         
         # Try the account-v1 endpoint to get gameName
-        if region in ['na1', 'br1', 'la1', 'la2']:
+        if region in ['na1', 'br1', 'la1', 'la2', 'oc1']:
             routing = 'americas'
-        elif region in ['euw1', 'eune1', 'tr1', 'ru']:
+        elif region in ['euw1', 'eun1', 'tr1', 'ru']:
             routing = 'europe'
         elif region in ['kr', 'jp1']:
             routing = 'asia'
-        else:
+        elif region in ['ph2', 'sg2', 'th2', 'tw2', 'vn2']:
             routing = 'sea'
+        else:
+            routing = 'americas'
         
         # Get account info which has gameName and tagLine
         url = f"https://{routing}.api.riotgames.com/riot/account/v1/accounts/by-puuid/{puuid}"
