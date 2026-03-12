@@ -6,13 +6,21 @@ from riot_api_wrapper import *
 import time
 from datetime import datetime
 from sqlalchemy import create_engine
+import os
+from dotenv import load_dotenv
 
-# PostgreSQL connection (CHANGE THE PASSWORD!)
+load_dotenv()
+
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+
+if not POSTGRES_PASSWORD:
+    raise ValueError("POSTGRES_PASSWORD not found in .env file!")
+
 DB_CONFIG = {
     'host': 'localhost',
     'database': 'riot_stats',
     'user': 'postgres',
-    'password': 'Wertypop87'  # ← CHANGE THIS!
+    'password': POSTGRES_PASSWORD
 }
 
 # SQLAlchemy engine for pandas

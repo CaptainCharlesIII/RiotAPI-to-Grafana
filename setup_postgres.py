@@ -1,7 +1,15 @@
 import psycopg2
+import os
+from dotenv import load_dotenv
 
-# CHANGE THIS to your PostgreSQL password
-POSTGRES_PASSWORD = "Wertypop87"
+# Load environment variables from .env file
+load_dotenv()
+
+# Get PostgreSQL password from .env file
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+
+if not POSTGRES_PASSWORD:
+    raise ValueError("POSTGRES_PASSWORD not found in .env file!")
 
 try:
     # Connect to default postgres database
