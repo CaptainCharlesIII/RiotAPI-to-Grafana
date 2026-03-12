@@ -125,7 +125,15 @@ def update_summoner_data(name, tag, region='na1', clear_old_data=True):
     
     # Get match history
     print(f"📊 Fetching matches for {name}#{tag}...")
-    match_region = 'americas' if region in ['na1', 'br1', 'la1', 'la2'] else 'europe'
+    if region in ['na1', 'br1', 'la1', 'la2']:
+        match_region = 'americas'
+    elif region in ['euw1', 'eun1', 'tr1', 'ru']:
+        match_region = 'europe'
+    elif region in ['kr', 'jp1']:
+        match_region = 'asia'
+    else:
+        match_region = 'sea'
+
     match_ids = get_match_history(puuid, match_region, count=20)
     
     matches = []
@@ -193,8 +201,56 @@ if __name__ == "__main__":
     # Initialize database
     init_database()
     
-    # Update data for your summoner (CHANGE THESE!)
-    update_summoner_data("JustSpoon", "MID", "na1")  # THIS RESETS ALL EXISTING DATA
-    # update_summoner_data("SecondPerson", "TAG2", "na1", clear_old_data=False)  ADDS DATA INSTEAD OF RESETTING
+    print("="*50)
+    print("🎮 RIOT API DATA COLLECTOR")
+    print("="*50)
+    
+    # Get summoner info from user
+    print("\nEnter your Riot ID (the name before the #):")
+    summoner_name = input("➡️  Summoner Name: ").strip()
+    
+    print("\nEnter your tagline (the part after the #):")
+    summoner_tag = input("➡️  Tagline: ").strip()
+    
+    print("\nSelect your region:")
+    print("  1. NA (North America)")
+    print("  2. EUW (Europe West)")
+    print("  3. EUNE (Europe Nordic & East)")
+    print("  4. KR (Korea)")
+    print("  5. JP (Japan)")
+    print("  6. BR (Brazil)")
+    print("  7. LAN (Latin America North)")
+    print("  8. LAS (Latin America South)")
+    print("  9. OCE (Oceania)")
+    print("  10. TR (Turkey)")
+    print("  11. RU (Russia)")
+    
+    region_choice = input("➡️  Enter number (1-11): ").strip()
+    
+    # Map choice to region code
+    region_map = {
+        '1': 'na1',
+        '2': 'euw1',
+        '3': 'eun1',
+        '4': 'kr',
+        '5': 'jp1',
+        '6': 'br1',
+        '7': 'la1',
+        '8': 'la2',
+        '9': 'oc1',
+        '10': 'tr1',
+        '11': 'ru'
+    }
+    
+    region = region_map.get(region_choice, 'na1')
+    
+    # Confirm with user
+    print(f"\n📋 Looking up: {summoner_name}#{summoner_tag} ({region.upper()})")
+    print("="*50)
+    
+    # Update data
+    update_summoner_data(summoner_name, summoner_tag, region)
     
     print("\n🎉 Data successfully stored in PostgreSQL!")
+    print("Refresh your Grafana dashboard to see the updated stats.")
+    input("\nPress Enter to close...")
