@@ -144,25 +144,50 @@ def update_summoner_data(name, tag, region='na1', clear_old_data=True):
         data = get_match_details(match_id, match_region)
         if data:
             info = data['info']
+            
+            # Find this player's data
+            my_participant = None
             for participant in info['participants']:
                 if participant['puuid'] == puuid:
-                    matches.append({
-                        'match_id': match_id,
-                        'puuid': puuid,
-                        'game_date': pd.to_datetime(info['gameEndTimestamp'], unit='ms'),
-                        'champion': participant['championName'],
-                        'kills': participant['kills'],
-                        'deaths': participant['deaths'],
-                        'assists': participant['assists'],
-                        'kda': round((participant['kills'] + participant['assists']) / max(participant['deaths'], 1), 2),
-                        'win': participant['win'],
-                        'game_mode': info['gameMode'],
-                        'total_damage': participant['totalDamageDealtToChampions'],
-                        'gold_earned': participant['goldEarned'],
-                        'cs': participant['totalMinionsKilled'] + participant['neutralMinionsKilled'],
-                        'game_duration': info['gameDuration'] // 60
-                    })
+                    my_participant = participant
                     break
+            
+            if my_participant:
+                # Find enemy laner
+                my_team_id = my_participant['teamId']
+                my_lane = my_participant.get('individualPosition', '') or my_participant.get('teamPosition', '') or my_participant.get('lane', '')
+                
+                enemy_champion = 'Unknown'
+                
+                # Search for enemy in same position
+                for participant in info['participants']:
+                    if participant['teamId'] != my_team_id:
+                        enemy_lane = participant.get('individualPosition', '') or participant.get('teamPosition', '') or participant.get('lane', '')
+                        if enemy_lane == my_lane and my_lane != '':
+                            enemy_champion = participant['championName']
+                            break
+                
+                matches.append({
+                    'match_id': match_id,
+                    'puuid': puuid,
+                    'game_date': pd.to_datetime(info['gameEndTimestamp'], unit='ms'),
+                    'champion': my_participant['championName'],
+                    'kills': my_participant['kills'],
+                    'deaths': my_participant['deaths'],
+                    'assists': my_participant['assists'],
+                    'kda': round((my_participant['kills'] + my_participant['assists']) / max(my_participant['deaths'], 1), 2),
+                    'win': my_participant['win'],
+                    'game_mode': info['gameMode'],
+                    'queue_id': info.get('queueId', 0),
+                    'total_damage': my_participant['totalDamageDealtToChampions'],
+                    'gold_earned': my_participant['goldEarned'],
+                    'cs': my_participant['totalMinionsKilled'] + my_participant['neutralMinionsKilled'],
+                    'game_duration': info['gameDuration'] // 60,
+                    'game_duration_seconds': info['gameDuration'],
+                    'lane': my_lane,
+                    'role': my_participant.get('role', ''),
+                    'enemy_champion': enemy_champion
+                })
         time.sleep(0.5)
     
     # Store matches
