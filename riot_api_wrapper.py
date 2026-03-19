@@ -77,68 +77,24 @@ def get_match_details(match_id, region='americas'):
             raise
 
 def get_ranked_stats(puuid, region='na1'):
-    """Get ranked stats by searching through recent match data"""
+    """Get ranked stats using PUUID"""
     try:
         import requests
         
-        # Try the account-v1 endpoint to get gameName
-        if region in ['na1', 'br1', 'la1', 'la2', 'oc1']:
-            routing = 'americas'
-        elif region in ['euw1', 'eun1', 'tr1', 'ru']:
-            routing = 'europe'
-        elif region in ['kr', 'jp1']:
-            routing = 'asia'
-        elif region in ['ph2', 'sg2', 'th2', 'tw2', 'vn2']:
-            routing = 'sea'
-        else:
-            routing = 'americas'
-        
-        # Get account info which has gameName and tagLine
-        url = f"https://{routing}.api.riotgames.com/riot/account/v1/accounts/by-puuid/{puuid}"
+        # Go directly to the league endpoint - no account lookup needed
+        url = f"https://{region}.api.riotgames.com/lol/league/v4/entries/by-puuid/{puuid}"
         headers = {"X-Riot-Token": api_key}
         
         response = requests.get(url, headers=headers)
         
-        if response.status_code != 200:
-            print(f"Account API error: {response.status_code}")
-            return []
-        
-        account = response.json()
-        game_name = account.get('gameName', '')
-        tag_line = account.get('tagLine', '')
-        
-        print(f"Looking up ranked stats for: {game_name}#{tag_line}")
-        
-        # Now try to get ranked data from a recent match
-        # The participant data in matches includes rank info
-        matches = get_match_history(puuid, routing, count=1)
-        
-        if not matches:
-            return []
-        
-        match_data = get_match_details(matches[0], routing)
-        
-        if not match_data:
-            return []
-        
-        # Find this player in the match
-        for participant in match_data['info']['participants']:
-            if participant['puuid'] == puuid:
-                # Extract rank info from participant if available
-                # Note: This only works for ranked games
-                if match_data['info']['queueId'] in [420, 440]:  # 420=Solo/Duo, 440=Flex
-                    # Unfortunately participant data doesn't always have rank
-                    # We need to try the league endpoint with a workaround
-                    break
-        
-        # Final attempt: Use PUUID with experimental endpoint
-        url = f"https://{region}.api.riotgames.com/lol/league/v4/entries/by-puuid/{puuid}"
-        response = requests.get(url, headers=headers)
-        
         if response.status_code == 200:
             return response.json()
+        elif response.status_code == 429:
+            print("Rate limit hit, waiting...")
+            time.sleep(120)
+            return get_ranked_stats(puuid, region)
         else:
-            print(f"League API status: {response.status_code} - {response.text[:100]}")
+            print(f"League API status: {response.status_code}")
             return []
             
     except Exception as e:

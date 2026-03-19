@@ -138,13 +138,13 @@ def update_summoner_data(name, tag, region='na1'):
     """Fetch and store summoner data (without clearing old data)"""
     
     # Determine match region
-    if region in ['na1', 'br1', 'la1', 'la2', 'oc1']:
+    if region in ['na1', 'br1', 'la1', 'la2']:
         match_region = 'americas'
     elif region in ['euw1', 'eun1', 'tr1', 'ru']:
         match_region = 'europe'
     elif region in ['kr', 'jp1']:
         match_region = 'asia'
-    elif region in ['ph2', 'sg2', 'th2', 'tw2', 'vn2']:
+    elif region in ['oc1', 'ph2', 'sg2', 'th2', 'tw2', 'vn2']:
         match_region = 'sea'
     else:
         match_region = 'americas'
@@ -186,7 +186,7 @@ def update_summoner_data(name, tag, region='na1'):
     
     # Get match history
     print(f"Fetching matches for {name}#{tag}...")
-    match_ids = get_match_history(puuid, match_region, count=20)
+    match_ids = get_match_history(puuid, match_region, count=100)
     
     # Filter out matches we already have
     new_match_ids = [m for m in match_ids if m not in existing_matches]
