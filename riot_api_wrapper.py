@@ -52,15 +52,40 @@ def get_summoner(name, tag, region='na1'):
         else:
             raise
 
-def get_match_history(puuid, region='americas', count=20):
+def get_match_history(puuid, region='americas', count=20, start_time=None):
     try:
-        matches = watcher.match.matchlist_by_puuid(region, puuid, count=count)
-        return matches
+        if count <= 100:
+            if start_time:
+                return watcher.match.matchlist_by_puuid(region, puuid, count=count, start_time=int(start_time))
+            else:
+                return watcher.match.matchlist_by_puuid(region, puuid, count=count)
+        else:
+            # Fetch in batches of 100
+            all_matches = []
+            start = 0
+            remaining = count
+            
+            while remaining > 0:
+                batch_size = min(remaining, 100)
+                if start_time:
+                    matches = watcher.match.matchlist_by_puuid(region, puuid, start=start, count=batch_size, start_time=int(start_time))
+                else:
+                    matches = watcher.match.matchlist_by_puuid(region, puuid, start=start, count=batch_size)
+                
+                if not matches:
+                    break
+                
+                all_matches.extend(matches)
+                start += batch_size
+                remaining -= batch_size
+                time.sleep(0.5)
+            
+            return all_matches
     except ApiError as err:
         if err.response.status_code == 429:
             print('Rate limit, sleeping 120s...')
             time.sleep(120)
-            return get_match_history(puuid, region, count)
+            return get_match_history(puuid, region, count, start_time)
         else:
             raise
 

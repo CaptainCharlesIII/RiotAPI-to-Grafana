@@ -2,14 +2,16 @@
 import psycopg2
 from psycopg2 import sql
 import pandas as pd
-from riot_api_wrapper import *
 import time
-from datetime import datetime
-from sqlalchemy import create_engine
 import os
+import sys
+from sqlalchemy import create_engine
 from dotenv import load_dotenv
 
 load_dotenv()
+
+from riot_api_wrapper import *
+from datetime import datetime
 
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 
@@ -186,7 +188,14 @@ def update_summoner_data(name, tag, region='na1'):
     
     # Get match history
     print(f"Fetching matches for {name}#{tag}...")
-    match_ids = get_match_history(puuid, match_region, count=100)
+
+    # 2026 Season start (January 8, 2026)
+    season_start = datetime(2026, 1, 8)
+    season_start_epoch = int(season_start.timestamp())
+
+    # Get ALL matches from this season (fetch in batches of 100, up to 1000 max)
+    match_ids = get_match_history(puuid, match_region, count=1000, start_time=season_start_epoch)
+    print(f"Found {len(match_ids)} total matches this season")
     
     # Filter out matches we already have
     new_match_ids = [m for m in match_ids if m not in existing_matches]
@@ -197,8 +206,9 @@ def update_summoner_data(name, tag, region='na1'):
         print(f"Found {len(new_match_ids)} new matches (skipping {len(match_ids) - len(new_match_ids)} existing)")
         
         matches = []
+        total = len(new_match_ids)
         for i, match_id in enumerate(new_match_ids, 1):
-            print(f"  Processing match {i}/{len(new_match_ids)}...", end='\r')
+            print(f"  Processing match {i}/{total} ({round(i/total*100)}%)...", end='\r')
             
             data = get_match_details(match_id, match_region)
             if data:
