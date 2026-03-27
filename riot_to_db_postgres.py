@@ -258,12 +258,12 @@ def update_summoner_data(name, tag, region='na1'):
             except Exception as e:
                 print(f"\nSome matches already exist (this is normal)")
     
-    # Get ranked stats
+        # Get ranked stats
     try:
         ranked = get_ranked_stats(puuid, region)
         
         if ranked:
-            # Delete old ranked stats for this player (keep only latest)
+            # Delete old ranked stats for this player
             conn = psycopg2.connect(**DB_CONFIG)
             cursor = conn.cursor()
             cursor.execute('DELETE FROM ranked_stats WHERE puuid = %s', (puuid,))
@@ -288,7 +288,28 @@ def update_summoner_data(name, tag, region='na1'):
             pd.DataFrame(ranked_data).to_sql('ranked_stats', engine, if_exists='append', index=False, method='multi')
             print(f"Stored ranked stats: {ranked_data[0]['tier']} {ranked_data[0]['rank']} {ranked_data[0]['lp']} LP")
         else:
-            print("No ranked data (unranked this season?)")
+            # Store unranked status
+            conn = psycopg2.connect(**DB_CONFIG)
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM ranked_stats WHERE puuid = %s', (puuid,))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            
+            unranked_data = [{
+                'puuid': puuid,
+                'summoner_name': display_name,
+                'queue_type': 'RANKED_SOLO_5x5',
+                'tier': 'UNRANKED',
+                'rank': '',
+                'lp': 0,
+                'wins': 0,
+                'losses': 0,
+                'timestamp': datetime.now()
+            }]
+            
+            pd.DataFrame(unranked_data).to_sql('ranked_stats', engine, if_exists='append', index=False, method='multi')
+            print("Stored as UNRANKED")
             
     except Exception as e:
         print(f"Ranked stats error: {e}")
