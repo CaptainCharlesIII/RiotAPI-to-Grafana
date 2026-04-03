@@ -59,6 +59,16 @@ try:
     ''')
     print("Table 'summoners' ready")
     
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS runes (
+            rune_id INTEGER PRIMARY KEY,
+            rune_name TEXT,
+            rune_image TEXT,
+            rune_tree TEXT
+        )
+    ''')
+    print("Table 'runes' ready")
+    
     # Matches table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS matches (
@@ -82,6 +92,26 @@ try:
             lane TEXT,
             role TEXT,
             enemy_champion TEXT,
+            item0 INTEGER,
+            item1 INTEGER,
+            item2 INTEGER,
+            item3 INTEGER,
+            item4 INTEGER,
+            item5 INTEGER,
+            item6 INTEGER,
+            summoner1_id INTEGER,
+            summoner2_id INTEGER,
+            primary_rune_tree INTEGER,
+            primary_keystone INTEGER,
+            primary_rune1 INTEGER,
+            primary_rune2 INTEGER,
+            primary_rune3 INTEGER,
+            secondary_rune_tree INTEGER,
+            secondary_rune1 INTEGER,
+            secondary_rune2 INTEGER,
+            stat_rune1 INTEGER,
+            stat_rune2 INTEGER,
+            stat_rune3 INTEGER,
             PRIMARY KEY (match_id, puuid)
         )
     ''')

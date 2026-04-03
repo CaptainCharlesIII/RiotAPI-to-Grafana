@@ -235,6 +235,15 @@ def update_summoner_data(name, tag, region='na1'):
                                 enemy_champion = participant['championName']
                                 break
                     
+                    # Extract runes
+                    perks = my_participant.get('perks', {})
+                    styles = perks.get('styles', [{}])
+                    primary_style = styles[0] if len(styles) > 0 else {}
+                    secondary_style = styles[1] if len(styles) > 1 else {}
+                    primary_selections = primary_style.get('selections', [])
+                    secondary_selections = secondary_style.get('selections', [])
+                    stat_perks = perks.get('statPerks', {})
+
                     matches.append({
                         'match_id': match_id,
                         'puuid': puuid,
@@ -255,7 +264,30 @@ def update_summoner_data(name, tag, region='na1'):
                         'game_duration_seconds': info['gameDuration'],
                         'lane': my_lane,
                         'role': my_participant.get('role', ''),
-                        'enemy_champion': enemy_champion
+                        'enemy_champion': enemy_champion,
+                        # Items
+                        'item0': my_participant.get('item0', 0),
+                        'item1': my_participant.get('item1', 0),
+                        'item2': my_participant.get('item2', 0),
+                        'item3': my_participant.get('item3', 0),
+                        'item4': my_participant.get('item4', 0),
+                        'item5': my_participant.get('item5', 0),
+                        'item6': my_participant.get('item6', 0),
+                        # Summoner spells
+                        'summoner1_id': my_participant.get('summoner1Id', 0),
+                        'summoner2_id': my_participant.get('summoner2Id', 0),
+                        # Runes
+                        'primary_rune_tree': primary_style.get('style', 0),
+                        'primary_keystone': primary_selections[0].get('perk', 0) if len(primary_selections) > 0 else 0,
+                        'primary_rune1': primary_selections[1].get('perk', 0) if len(primary_selections) > 1 else 0,
+                        'primary_rune2': primary_selections[2].get('perk', 0) if len(primary_selections) > 2 else 0,
+                        'primary_rune3': primary_selections[3].get('perk', 0) if len(primary_selections) > 3 else 0,
+                        'secondary_rune_tree': secondary_style.get('style', 0),
+                        'secondary_rune1': secondary_selections[0].get('perk', 0) if len(secondary_selections) > 0 else 0,
+                        'secondary_rune2': secondary_selections[1].get('perk', 0) if len(secondary_selections) > 1 else 0,
+                        'stat_rune1': stat_perks.get('offense', 0),
+                        'stat_rune2': stat_perks.get('flex', 0),
+                        'stat_rune3': stat_perks.get('defense', 0)
                     })
             time.sleep(0.5)
         
