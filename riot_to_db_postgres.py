@@ -227,13 +227,29 @@ def update_summoner_data(name, tag, region='na1'):
                     my_lane = my_participant.get('individualPosition', '') or my_participant.get('teamPosition', '') or my_participant.get('lane', '')
                     
                     enemy_champion = 'Unknown'
+                    allies = []
+                    enemies = []
                     
                     for participant in info['participants']:
-                        if participant['teamId'] != my_team_id:
+                        if participant['puuid'] == puuid:
+                            continue  # Skip yourself
+                        
+                        if participant['teamId'] == my_team_id:
+                            # Teammate
+                            allies.append(participant['championName'])
+                        else:
+                            # Enemy
+                            enemies.append(participant['championName'])
+                            # Check if same lane for enemy_champion
                             enemy_lane = participant.get('individualPosition', '') or participant.get('teamPosition', '') or participant.get('lane', '')
                             if enemy_lane == my_lane and my_lane != '':
                                 enemy_champion = participant['championName']
-                                break
+                    
+                    # Pad lists to always have 4 allies and 5 enemies
+                    while len(allies) < 4:
+                        allies.append('')
+                    while len(enemies) < 5:
+                        enemies.append('')
                     
                     # Extract runes
                     perks = my_participant.get('perks', {})
@@ -243,7 +259,7 @@ def update_summoner_data(name, tag, region='na1'):
                     primary_selections = primary_style.get('selections', [])
                     secondary_selections = secondary_style.get('selections', [])
                     stat_perks = perks.get('statPerks', {})
-
+                    
                     matches.append({
                         'match_id': match_id,
                         'puuid': puuid,
@@ -265,6 +281,16 @@ def update_summoner_data(name, tag, region='na1'):
                         'lane': my_lane,
                         'role': my_participant.get('role', ''),
                         'enemy_champion': enemy_champion,
+                        # Team compositions
+                        'ally1': allies[0],
+                        'ally2': allies[1],
+                        'ally3': allies[2],
+                        'ally4': allies[3],
+                        'enemy1': enemies[0],
+                        'enemy2': enemies[1],
+                        'enemy3': enemies[2],
+                        'enemy4': enemies[3],
+                        'enemy5': enemies[4],
                         # Items
                         'item0': my_participant.get('item0', 0),
                         'item1': my_participant.get('item1', 0),
